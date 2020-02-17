@@ -9,8 +9,10 @@ The hive configuration is performed with HIVE_SITE_CONF_ variables (see hadoop-h
 
 To run Hive with postgresql metastore:
 ```
-    docker-compose up -d
+    docker-compose up -d -p hive
 ```
+
+Need to specify network name to avoid _ in domain names.
 
 To deploy in Docker Swarm:
 ```

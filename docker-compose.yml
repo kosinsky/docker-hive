@@ -1,4 +1,4 @@
-version: "3"
+version: "3.5"
 
 services:
   namenode:
@@ -13,6 +13,8 @@ services:
     ports:
       - 9870:9870
       - 9000:9000
+    networks: 
+      - hive_default
   datanode:
     image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
     restart: always
@@ -24,6 +26,9 @@ services:
       SERVICE_PRECONDITION: "namenode:9870"
     # ports:
     #   - "50075:50075"
+    networks: 
+      - hive_default
+
   hive-server:
     image: bde2020/hive:3.1.2-postgresql-metastore
     restart: always
@@ -31,12 +36,16 @@ services:
       - ./hadoop-hive.env
     environment:
       HIVE_CORE_CONF_javax_jdo_option_ConnectionURL: "jdbc:postgresql://hive-metastore/metastore"
-      SERVICE_PRECONDITION: "hive-metastore:9083"
+      SERVICE_PRECONDITION: "hivemetastore:9083"
     ports:
       - "10000:10000"
-  hive-metastore:
+    networks: 
+      - hive_default
+
+  hivemetastore:
     image: bde2020/hive:3.1.2-postgresql-metastore
     restart: always
+    container_name: hivemeastore
     env_file:
       - ./hadoop-hive.env
     command: /opt/hive/bin/hive --service metastore
@@ -44,14 +53,27 @@ services:
       SERVICE_PRECONDITION: "namenode:9870 datanode:9864 hive-metastore-postgresql:5432"
     ports:
       - "9083:9083"
+    networks: 
+      - hive_default
+
+
   hive-metastore-postgresql:
     image: bde2020/hive-metastore-postgresql:3.1.0
+    networks: 
+      - hive_default
+    
   presto-coordinator:
     image: prestosql/presto:329
     ports:
       - "8080:8080"
+    networks: 
+      - hive_default
     
 
 volumes:
   namenode:
   datanode:
+
+networks: 
+  hive_default:
+    name: hive
