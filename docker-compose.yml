@@ -4,6 +4,7 @@ services:
   namenode:
     image: bde2020/hadoop-namenode:2.0.0-hadoop3.2.1-java8
     restart: always
+    hostname: namenode
     volumes:
       - namenode:/hadoop/dfs/name
     environment:
@@ -18,6 +19,7 @@ services:
   datanode:
     image: bde2020/hadoop-datanode:2.0.0-hadoop3.2.1-java8
     restart: always
+    hostname: datanode
     volumes:
       - datanode:/hadoop/dfs/data
     env_file:
@@ -28,6 +30,43 @@ services:
     #   - "50075:50075"
     networks: 
       - hive_default
+      
+  resourcemanager:
+    image: bde2020/hadoop-resourcemanager:2.0.0-hadoop3.2.1-java8
+    hostname: resourcemanager
+    restart: always
+    environment:
+      SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode:9864"
+    env_file:
+      - ./hadoop-hive.env
+    ports:
+      - 8088:8088
+    networks: 
+      - hive_default      
+
+  nodemanager1:
+    image: bde2020/hadoop-nodemanager:2.0.0-hadoop3.2.1-java8
+    container_name: nodemanager
+    restart: always
+    environment:
+      SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode:9864 resourcemanager:8088"
+    env_file:
+      - ./hadoop-hive.env
+    networks: 
+      - hive_default
+
+  historyserver:
+    image: bde2020/hadoop-historyserver:2.0.0-hadoop3.2.1-java8
+    hostname: historyserver
+    restart: always
+    environment:
+      SERVICE_PRECONDITION: "namenode:9000 namenode:9870 datanode:9864 resourcemanager:8088"
+    volumes:
+      - hadoop_historyserver:/hadoop/yarn/timeline
+    env_file:
+      - ./hadoop-hive.env
+    networks: 
+      - hive_default     
 
   hive-server:
     image: bde2020/hive:3.1.2-postgresql-metastore
@@ -36,16 +75,16 @@ services:
       - ./hadoop-hive.env
     environment:
       HIVE_CORE_CONF_javax_jdo_option_ConnectionURL: "jdbc:postgresql://hive-metastore/metastore"
-      SERVICE_PRECONDITION: "hivemetastore:9083"
+      SERVICE_PRECONDITION: "hive-metastore:9083"
     ports:
       - "10000:10000"
     networks: 
       - hive_default
 
-  hivemetastore:
+  hive-metastore:
     image: bde2020/hive:3.1.2-postgresql-metastore
     restart: always
-    container_name: hivemeastore
+    container_name: hive-metastore
     env_file:
       - ./hadoop-hive.env
     command: /opt/hive/bin/hive --service metastore
@@ -73,6 +112,7 @@ services:
 volumes:
   namenode:
   datanode:
+  hadoop_historyserver:
 
 networks: 
   hive_default:
