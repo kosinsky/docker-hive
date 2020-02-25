@@ -102,9 +102,12 @@ services:
       - hive_default
     
   presto-coordinator:
-    image: prestosql/presto:329
+    image: prestosql/presto:330
+    restart: always
     ports:
       - "8080:8080"
+    volumes:
+      - "./conf/hive.properties:/usr/lib/presto/default/etc/catalog/hive.properties"      
     networks: 
       - hive_default
     
