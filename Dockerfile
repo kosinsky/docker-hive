@@ -1,4 +1,4 @@
-FROM bde2020/hadoop-base:2.0.0-hadoop3.1.2-java8
+FROM bde2020/hadoop-base:2.0.0-hadoop3.2.1-java8
 
 MAINTAINER Yiannis Mouchakis <gmouchakis@iit.demokritos.gr>
 MAINTAINER Ivan Ermilov <ivan.s.ermilov@gmail.com>
@@ -26,8 +26,9 @@ RUN apt-get update && apt-get install -y wget procps && \
 	rm apache-hive-$HIVE_VERSION-bin.tar.gz && \
 	apt-get --purge remove -y wget && \
 	apt-get clean && \
-	rm -rf /var/lib/apt/lists/*
-
+	rm -rf /var/lib/apt/lists/* && \
+	rm $HIVE_HOME/lib/guava* && \
+	cp $HADOOP_HOME/share/hadoop/hdfs/lib/guava-27.0-jre.jar $HIVE_HOME/lib
 
 #Spark should be compiled with Hive to be able to use it
 #hive-site.xml should be copied to $SPARK_HOME/conf folder
